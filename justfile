@@ -68,8 +68,19 @@ upload:
     trap "rm -rf ${TMPDIR}" EXIT
     tar -czf "${TMPDIR}/${ASSET_NAME}.tar.gz" -C ./result/bin .
     (cd "${TMPDIR}" && sha256sum "${ASSET_NAME}.tar.gz" > "${ASSET_NAME}.tar.gz.sha256")
-    curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" -T "${TMPDIR}/${ASSET_NAME}.tar.gz" "${ARTIFACTORY_URL}"/"${ASSET_NAME}.tar.gz"
-    curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" -T "${TMPDIR}/${ASSET_NAME}.tar.gz.sha256" "${ARTIFACTORY_URL}"/"${ASSET_NAME}.tar.gz.sha256"
+    ASSETS=("${TMPDIR}/${ASSET_NAME}.tar.gz" "${TMPDIR}/${ASSET_NAME}.tar.gz.sha256")
+
+    #FIXME: publish to artifactory
+    for asset in "${ASSETS[@]}"; do
+        curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" \
+          -T "$asset" \
+          "${ARTIFACTORY_URL}/$(basename "$asset")"
+    done
+
+    #FIXME: publish to github
+    gh release create "v${PACKAGE_VERSION}" \
+      "${ASSETS[@]}" \
+      --notes "$(awk '/^## \[/{if(found) exit; found=1} found' CHANGELOG.md)"
 
 [group('release')]
 release: build tag upload
