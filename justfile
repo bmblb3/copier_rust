@@ -13,6 +13,7 @@ ci: lint test doctest doc
 [group('ci')]
 [parallel]
 lint:
+    pre-commit run --all-files
     cargo fmt --all --check
     cargo check --all-targets --all-features --workspace
     cargo clippy --all-targets --all-features --workspace -- -D warnings -D clippy::all
@@ -67,22 +68,8 @@ upload:
     trap "rm -rf ${TMPDIR}" EXIT
     tar -czf "${TMPDIR}/${ASSET_NAME}.tar.gz" -C ./result/bin .
     (cd "${TMPDIR}" && sha256sum "${ASSET_NAME}.tar.gz" > "${ASSET_NAME}.tar.gz.sha256")
-    assets=("${TMPDIR}/${ASSET_NAME}.tar.gz" "${TMPDIR}/${ASSET_NAME}.tar.gz.sha256")
-
-    # #FIXME: UNCOMMENT IF RELEASING INTO ARTIFACTORY
-    #
-    # for file in "${assets[@]}"; do
-    #   curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" \
-    #     -T "${file}" \
-    #     "${ARTIFACTORY_URL}/$(basename "${file}")"
-    # done
-
-    # #FIXME: UNCOMMENT IF RELEASING INTO GITHUB
-    #
-    # gh release create \
-    #   "v${PACKAGE_VERSION}" \
-    #   "${assets[@]}" \
-    #   --notes "$(awk '/^## \[/{if(found) exit; found=1} found' CHANGELOG.md)"
+    curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" -T "${TMPDIR}/${ASSET_NAME}.tar.gz" "${ARTIFACTORY_URL}"/"${ASSET_NAME}.tar.gz"
+    curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" -T "${TMPDIR}/${ASSET_NAME}.tar.gz.sha256" "${ARTIFACTORY_URL}"/"${ASSET_NAME}.tar.gz.sha256"
 
 [group('release')]
 release: build tag upload
