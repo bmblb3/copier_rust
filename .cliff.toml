@@ -1,1 +1,9 @@
-../.cliff.toml
+[changelog]
+header = "# CHANGELOG\n\n"
+body = """
+{%- if version -%}
+    ## [{{ version | trim_start_matches(pat="v") }}]({{ extra.remote_url }}/compare/{{ previous.version }}..{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+{% for commit in commits %}
+    - {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
+{% endfor %}{% endif %}\n\n
+"""

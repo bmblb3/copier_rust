@@ -1,1 +1,10 @@
-../.gitignore
+# FIXME: pick sections that make sense
+
+**/*.rs.bk  # backup files for rustfmt [rust,cargo,rustfmt]
+.direnv  # direnv artifacts [direnv]
+.env  # dot-env config [dot-env,secrets]
+.envrc  # direnv config [direnv,secrets]
+# cargo.lock  # comment if making executable, uncomment for libraries [rust,cargo]
+debug/  # compiled files and executables [rust,cargo]
+result  # nix build results [nix]
+target/  # compiled files and executables [rust,cargo]
