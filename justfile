@@ -66,7 +66,7 @@ upload:
     (cd "${TMPDIR}" && sha256sum "${ASSET_NAME}.tar.gz" > "${ASSET_NAME}.tar.gz.sha256")
     assets=("${TMPDIR}/${ASSET_NAME}.tar.gz" "${TMPDIR}/${ASSET_NAME}.tar.gz.sha256")
 
-    # # FIXME: UNCOMMENT IF RELESING INTO ARTIFACTORY
+    # #FIXME: UNCOMMENT IF RELEASING INTO ARTIFACTORY
     #
     # for file in "${assets[@]}"; do
     #   curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" \
@@ -74,7 +74,7 @@ upload:
     #     "${ARTIFACTORY_URL}/$(basename "${file}")"
     # done
 
-    # # FIXME: UNCOMMENT IF RELEASING INTO GITHUB
+    # #FIXME: UNCOMMENT IF RELEASING INTO GITHUB
     #
     # gh release create \
     #   "v${PACKAGE_VERSION}" \

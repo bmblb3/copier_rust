@@ -1,0 +1,17 @@
+[package]
+name = #FIXME:
+version = #FIXME:
+edition = "2024" #FIXME:
+description = #FIXME:
+repository = #FIXME:
+license-file = #FIXME:
+
+[dependencies]
+#FIXME:
+
+[dev-dependencies]
+#FIXME:
+
+[lints.clippy]
+used_underscore_binding = "warn"
+used_underscore_items = "warn"
