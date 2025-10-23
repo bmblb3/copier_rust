@@ -13,10 +13,10 @@ Thank you for your interest in contributing!
 - Discuss your proposed changes before starting.
 - Clone the repository.
 - Set up the development environment:
-    - If you use Nix: `nix develop`
-    - Otherwise: use `flake.nix` as a reference.
+    - *If you use Nix*: `nix develop`
+    - *Otherwise*: refer to `buildInputs = [ .. ]` in `flake.nix` and install dependencies accordingly.
 - Write code.
-    - Format code: `cargo fmt --all`
+    - Format code: `just fmt`
 - Ensure all checks pass: `just ci`
 - Open a pull request.
     - Add a short, clear list of your changes.

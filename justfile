@@ -3,6 +3,9 @@ set dotenv-load
 default:
     @just --list
 
+fmt:
+    cargo fmt --all
+
 [group('ci')]
 [parallel]
 ci: lint test doctest doc
