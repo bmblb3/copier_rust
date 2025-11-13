@@ -3,10 +3,13 @@ name = "{{crate_name}}"
 version = "{{crate_version}}"
 edition = "{{rust_edition}}"
 description = "{{crate_description}}"
+authors = ["Akshay Kumar (akskum95@gmail.com)"]
 {% if remote_type != 'no remote' %}
 repository = "{{repository}}":
 {% endif -%}
-license-file = #TODO
+{% if opensource %}
+license = "MIT OR Apache-2.0"
+{% endif -%}
 
 [dependencies]
 
