@@ -22,21 +22,14 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+        rustToolchain = pkgs.rust-bin.nightly."2025-10-01".default.override {
+          extensions = [
+            "rust-analyzer"
+            "rust-src"
+          ];
+        };
       in
       {
-        packages = {
-          default = pkgs.pkgsStatic.rustPlatform.buildRustPackage {
-            pname = cargoToml.package.name;
-            version = cargoToml.package.version;
-            src = pkgs.lib.cleanSource ./.;
-            cargoLock = {
-              lockFile = ./Cargo.lock;
-            };
-          };
-        };
-
         devShells.default =
           with pkgs;
           mkShell {
@@ -53,7 +46,7 @@
               pre-commit
               ra-multiplex
               rustToolchain
-              #FIXME:
+              #FIXME: other dependencies
             ];
           };
       }

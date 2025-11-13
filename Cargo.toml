@@ -13,5 +13,7 @@ license-file = #FIXME:
 #FIXME:
 
 [lints.clippy]
-used_underscore_binding = "warn"
-used_underscore_items = "warn"
+pedantic = { level = "warn", priority = -100 }
+
+[lints.rust]
+unsafe_code = "forbid"

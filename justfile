@@ -1,17 +1,16 @@
 set dotenv-load
 
 default:
-    @just --list
+    @just --list --unsorted
 
+[group('dev')]
 fmt:
     cargo fmt --all
 
 [group('ci')]
-[parallel]
 ci: lint test doctest doc
 
 [group('ci')]
-[parallel]
 lint:
     pre-commit run --all-files
     cargo fmt --all --check
@@ -20,7 +19,7 @@ lint:
 
 [group('ci')]
 test:
-    cargo test --all-features --all-targets --workspace
+    cargo nextest run --all-features --all-targets --workspace --stress-count=10
 
 [group('ci')]
 doctest:
@@ -30,12 +29,8 @@ doctest:
 doc:
     cargo doc --no-deps --document-private-items --all-features --workspace --examples
 
-[group('build')]
-build:
-    nix build
-
 [group('pre-release')]
-bump BUMP_TYPE='':
+bump BUMP_TYPE='': ci
     #!/usr/bin/env bash
     set -euo pipefail
     if [ -z "{{BUMP_TYPE}}" ] || ! [[ "{{BUMP_TYPE}}" =~ ^(major|minor|patch)$ ]]; then
@@ -50,25 +45,52 @@ bump BUMP_TYPE='':
       git cliff --config ./.cliff.toml --unreleased --bump="{{BUMP_TYPE}}" --prepend CHANGELOG.md --from-context -
 
 [group('release')]
+clean:
+    rm -rf dist
+
+[group('release')]
+build:
+    docker run \
+      --volume cargo-cache:/opt/cargo/registry \
+      --volume $PWD:/volume \
+      --rm --tty \
+      clux/muslrust:nightly-2025-10-01 \
+      cargo build --release
+
+[group('release')]
+package: clean
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p dist
+    PACKAGE_NAME=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].name')
+    PACKAGE_VERSION=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
+    ASSET_NAME="${PACKAGE_NAME}-v${PACKAGE_VERSION}-x86_64-unknown-linux-musl"
+    tar -czf "dist/${ASSET_NAME}.tar.gz" \
+        -C ./target/x86_64-unknown-linux-musl/release/ \
+        $(find ./target/x86_64-unknown-linux-musl/release/ \
+            -maxdepth 1 \
+            -type f \
+            -executable \
+            -print |
+            xargs -n 1 basename)
+    (cd dist && sha256sum "${ASSET_NAME}.tar.gz" > "${ASSET_NAME}.tar.gz.sha256")
+
+[group('release')]
 tag:
     #!/usr/bin/env bash
     set -euo pipefail
+    [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ] &&
+      echo "Error: must be on main branch to tag" && exit 1
     cargo release commit --execute --no-confirm
-    cargo release tag --execute --no-confirm
-    cargo release push --execute
+    PACKAGE_VERSION=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
+    cargo release tag --tag-name "v${PACKAGE_VERSION}" --execute --no-confirm
+    cargo release push --tag-name "v${PACKAGE_VERSION}" --execute
 
 [group('release')]
 upload:
     #!/usr/bin/env bash
     set -euo pipefail
-    PACKAGE_NAME=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].name')
-    PACKAGE_VERSION=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
-    ASSET_NAME="${PACKAGE_NAME}-v${PACKAGE_VERSION}-x86_64-unknown-linux-musl"
-    TMPDIR=$(mktemp -d)
-    trap "rm -rf ${TMPDIR}" EXIT
-    tar -czf "${TMPDIR}/${ASSET_NAME}.tar.gz" -C ./result/bin .
-    (cd "${TMPDIR}" && sha256sum "${ASSET_NAME}.tar.gz" > "${ASSET_NAME}.tar.gz.sha256")
-    ASSETS=("${TMPDIR}/${ASSET_NAME}.tar.gz" "${TMPDIR}/${ASSET_NAME}.tar.gz.sha256")
+    mapfile -t ASSETS < <(find dist -type f -print)
 
     #FIXME: publish to artifactory
     for asset in "${ASSETS[@]}"; do
@@ -83,4 +105,4 @@ upload:
       --notes "$(awk '/^## \[/{if(found) exit; found=1} found' CHANGELOG.md)"
 
 [group('release')]
-release: build tag upload
+release: ci build package tag upload

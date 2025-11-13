@@ -7,8 +7,8 @@
 # [dotenv]
 .env  # dot-env config
 
-# [nix]
-result  # nix build results
+# [just] assets pre-upload
+dist  # assets
 
 # [rust]
 **/*.rs.bk  # backup files for rustfmt
