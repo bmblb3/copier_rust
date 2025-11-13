@@ -1,17 +1,15 @@
-# FIXME: remove # parts
-
 # [direnv]
-.direnv  # direnv artifacts
-.envrc  # direnv config
+.direnv
+.envrc
 
 # [dotenv]
-.env  # dot-env config
+.env
 
 # [just] assets pre-upload
-dist  # assets
+dist
 
 # [rust]
-**/*.rs.bk  # backup files for rustfmt
-# cargo.lock  # comment if making executable, uncomment for libraries
-debug/  # compiled files and executables
-target/  # compiled files and executables
+**/*.rs.bk
+# cargo.lock
+debug/
+target/
