@@ -5,3 +5,5 @@ crate_version: "0.0.1"
 rust_edition:
   choices: [2015, 2018, 2021, 2024]
   default: 2024
+
+crate_description: "{{crate_name}}"
