@@ -46,7 +46,6 @@
               pre-commit
               ra-multiplex
               rustToolchain
-              #FIXME: other dependencies
             ];
           };
       }
