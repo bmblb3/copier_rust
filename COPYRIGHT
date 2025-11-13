@@ -1,6 +1,4 @@
-#FIXME: remove this file if Open source
-#FIXME: change {YEAR}, {COMPANY}
-Copyright © {YEAR} {COMPANY}. All rights reserved.
+Copyright © {{ '%Y' | strftime }} TRATON SE. All rights reserved.
 
 This software is proprietary and confidential.
 Unauthorized copying, distribution, or modification
