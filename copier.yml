@@ -1,0 +1,11 @@
+crate_name:
+  type: str
+
+crate_version:
+  type: str
+  default: 0.0.1
+
+rust_edition:
+  type: str
+  default: 2024
+  choices: [2015, 2018, 2021, 2024]
