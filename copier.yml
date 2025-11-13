@@ -8,4 +8,4 @@ crate_version:
 rust_edition:
   type: str
   choices: [2015, 2018, 2021, 2024]
-  default: 2024
+  default: "2024"
