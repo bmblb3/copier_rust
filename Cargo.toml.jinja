@@ -4,14 +4,14 @@ version = "{{crate_version}}"
 edition = "{{rust_edition}}"
 description = "{{crate_description}}"
 authors = ["Akshay Kumar (akskum95@gmail.com)"]
-{%- if remote_type != 'no remote' -%}
-repository = "{{repository}}":
+{%- if remote_type != 'no remote' %}
+repository = "{{repository}}"
 {%- endif -%}
-{%- if opensource -%}
+{%- if opensource %}
 license = "MIT OR Apache-2.0"
-{% else %}
+{%- else -%}
 license-file = "COPYRIGHT"
-{% endif %}
+{%- endif %}
 
 [dependencies]
 
