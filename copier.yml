@@ -7,3 +7,18 @@ rust_edition:
   default: 2024
 
 crate_description: "{{crate_name}}"
+
+opensource: true
+
+remote_type:
+  choices: |
+    - "no remote"
+    {%- if opensource %}
+    - "github"
+    {%- else %}
+    - "gitlab (scania)"
+    {%- endif %}
+  default: "no remote"
+
+repository:
+  when: "{{ remote_type != 'no remote' }}"
