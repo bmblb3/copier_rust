@@ -1,11 +1,7 @@
-crate_name:
-  type: str
+crate_name: ""
 
-crate_version:
-  type: str
-  default: 0.0.1
+crate_version: "0.0.1"
 
 rust_edition:
-  type: str
   choices: [2015, 2018, 2021, 2024]
-  default: "2024"
+  default: 2024
