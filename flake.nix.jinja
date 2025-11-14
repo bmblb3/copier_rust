@@ -39,7 +39,8 @@
               cargo-release
 {%- if artifactory_publish %}
               curl
-{%- endif -%}
+{%- endif %}
+              docker
 {%- if gh_publish %}
               gh
 {%- endif %}
