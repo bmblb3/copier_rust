@@ -29,6 +29,7 @@ doctest:
 doc:
     cargo doc --no-deps --document-private-items --all-features --workspace --examples
 
+{% raw -%}
 [group('pre-release')]
 bump BUMP_TYPE='': ci
     #!/usr/bin/env bash
@@ -43,6 +44,7 @@ bump BUMP_TYPE='': ci
     git cliff --config ./.cliff.toml --unreleased --bump="{{BUMP_TYPE}}" --context |
       jq --arg u "${remote_url}" '.[0].extra.remote_url= $u' |
       git cliff --config ./.cliff.toml --unreleased --bump="{{BUMP_TYPE}}" --prepend CHANGELOG.md --from-context -
+{%- endraw %}
 
 [group('release')]
 clean:
