@@ -107,4 +107,4 @@ upload:
 {%- endif %}
 
 [group('release')]
-release: ci build package tag upload
+release: ci build package tag{% if artifactory_publish or gh_publish %} upload{% endif %}
