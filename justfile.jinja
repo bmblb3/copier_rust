@@ -94,14 +94,14 @@ upload:
     #!/usr/bin/env bash
     set -euo pipefail
     mapfile -t ASSETS < <(find dist -type f -print)
-  {% if artifactory_publish -%}
+  {%- if artifactory_publish %}
     for asset in "${ASSETS[@]}"; do
         curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" \
           -T "$asset" \
           "${ARTIFACTORY_URL}/$(basename "$asset")"
     done
-  {%- endif %}
-  {% if gh_publish -%}
+  {%- endif -%}
+  {%- if gh_publish %}
     gh release create "v${PACKAGE_VERSION}" \
       "${ASSETS[@]}" \
       --notes "$(awk '/^## \[/{if(found) exit; found=1} found' CHANGELOG.md)"
