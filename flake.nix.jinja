@@ -37,8 +37,12 @@
               bacon
               cargo-nextest
               cargo-release
-              #FIXME: curl # if publishing to artifactory
-              #FIXME: gh # if publishing to github
+{%- if artifactory_publish %}
+              curl
+{%- endif -%}
+{%- if gh_publish %}
+              gh
+{%- endif %}
               git-cliff
               gnutar
               jq
