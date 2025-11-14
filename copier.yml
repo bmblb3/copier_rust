@@ -22,3 +22,11 @@ remote_type:
 
 repository:
   when: "{{ remote_type != 'no remote' }}"
+
+gh_publish:
+  default: false
+  when: "{{ remote_type == 'github'}}"
+
+artifactory_publish:
+  default: false
+  when: "{{ remote_type == 'gitlab (scania)'}}"
