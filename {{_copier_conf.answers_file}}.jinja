@@ -1,1 +1,2 @@
-{{ _copier_answers|to_nice_yaml -}}
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+{{ dict(_copier_answers, gh_publish=gh_publish, artifactory_publish=artifactory_publish) | to_nice_yaml -}}
