@@ -1,6 +1,6 @@
 project_title: ""
 
-crate_name: "{{ name|lower|replace(' ', '-') }}"
+crate_name: "{{ project_title|lower|replace(' ', '-') }}"
 
 crate_version: "0.0.1"
 
