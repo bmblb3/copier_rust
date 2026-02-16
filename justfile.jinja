@@ -16,6 +16,7 @@ lint:
     cargo fmt --all --check
     cargo check --all-targets --all-features --workspace
     cargo clippy --all-targets --all-features --workspace -- -D warnings -D clippy::all
+    cargo build
 
 [group('ci')]
 test:
