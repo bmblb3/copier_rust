@@ -34,7 +34,6 @@
           with pkgs;
           mkShell {
             buildInputs = [
-              bacon
               cargo-nextest
               cargo-release
 {%- if artifactory_publish %}
@@ -51,6 +50,7 @@
               lspmux
               pre-commit
               rustToolchain
+              watchexec
             ];
           };
       }
