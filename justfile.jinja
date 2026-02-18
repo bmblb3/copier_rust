@@ -57,7 +57,7 @@ build:
       --volume cargo-cache:/opt/cargo/registry \
       --volume $PWD:/volume \
       --rm --tty \
-      clux/muslrust:nightly-$(date -d "yesterday" +%Y-%m-%d) \
+      clux/muslrust:nightly \
       cargo build --release
 
 [group('release')]
