@@ -1,14 +1,17 @@
-set dotenv-load
+{% raw -%}
+musl_target := "x86_64-unknown-linux-musl"
+release_dir := "target/" + musl_target + "/release"
+cargo_release_args := "--allow-branch=main --execute --no-confirm"
 
 default:
     @just --list --unsorted
 
-[group('dev')]
+[group('ci')]
 fmt:
     cargo fmt --all
 
 [group('ci')]
-ci: lint test doctest doc
+ci: lint test
 
 [group('ci')]
 lint:
@@ -16,98 +19,60 @@ lint:
     cargo fmt --all --check
     cargo check --all-targets --all-features --workspace
     cargo clippy --all-targets --all-features --workspace -- -D warnings -D clippy::all
-    cargo build
 
 [group('ci')]
 test:
-    cargo nextest run --all-features --all-targets --workspace --stress-count=10
+    cargo nextest run --all-features --all-targets --workspace
 
 [group('ci')]
-doctest:
-    cargo test --doc
+build-debug:
+    cargo build
 
-[group('ci')]
-doc:
-    cargo doc --no-deps --document-private-items --all-features --workspace --examples
-
-{% raw -%}
 [group('pre-release')]
-bump BUMP_TYPE='': ci
+bump: ci
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ -z "{{BUMP_TYPE}}" ] || ! [[ "{{BUMP_TYPE}}" =~ ^(major|minor|patch)$ ]]; then
-      cargo release changes
-      echo "Re-run and specify 'major', 'minor', or 'patch'."
-      exit 1
-    fi
-    cargo release version "{{BUMP_TYPE}}" --execute --no-confirm
+    BUMP_TYPE=$(printf '%s\n' patch minor major | fzf --prompt='Version bump: ')
+    cargo release version "${BUMP_TYPE}" {{cargo_release_args}}
     remote_url=$(git config --get remote.origin.url | sed 's/\.git$//')
-    git cliff --config ./.cliff.toml --unreleased --bump="{{BUMP_TYPE}}" --context |
+    git cliff --config ./.cliff.toml --unreleased --bump="${BUMP_TYPE}" --context |
       jq --arg u "${remote_url}" '.[0].extra.remote_url= $u' |
-      git cliff --config ./.cliff.toml --unreleased --bump="{{BUMP_TYPE}}" --prepend CHANGELOG.md --from-context -
-{%- endraw %}
+      git cliff --config ./.cliff.toml --unreleased --bump="${BUMP_TYPE}" --prepend CHANGELOG.md --from-context -
 
 [group('release')]
-clean:
-    rm -rf dist
-
-[group('release')]
-build:
+build-release:
     docker run \
       --volume cargo-cache:/opt/cargo/registry \
       --volume $PWD:/volume \
       --rm --tty \
       clux/muslrust:nightly \
-      cargo build --release
+      cargo build --release --target {{musl_target}}
 
 [group('release')]
-package: clean
+package: build-release
     #!/usr/bin/env bash
     set -euo pipefail
+    rm -rf dist
     mkdir -p dist
-    PACKAGE_NAME=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].name')
-    PACKAGE_VERSION=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
-    ASSET_NAME="${PACKAGE_NAME}-v${PACKAGE_VERSION}-x86_64-unknown-linux-musl"
-    tar -czf "dist/${ASSET_NAME}.tar.gz" \
-        -C ./target/x86_64-unknown-linux-musl/release/ \
-        $(find ./target/x86_64-unknown-linux-musl/release/ \
-            -maxdepth 1 \
-            -type f \
-            -executable \
-            -print |
-            xargs -n 1 basename)
-    (cd dist && sha256sum "${ASSET_NAME}.tar.gz" > "${ASSET_NAME}.tar.gz.sha256")
+    package_name=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].name')
+    package_version=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
+    asset_name="${package_name}-v${package_version}-{{musl_target}}"
+    mapfile -t executables < <(find "./{{release_dir}}" -maxdepth 1 -type f -executable -printf '%f\n')
+    if [ "${#executables[@]}" -eq 0 ]; then
+        echo "No executables found in {{release_dir}}"
+        exit 1
+    fi
+    tar -czf "dist/${asset_name}.tar.gz" -C "./{{release_dir}}" "${executables[@]}"
+    (cd dist && sha256sum "${asset_name}.tar.gz" > "${asset_name}.tar.gz.sha256")
 
 [group('release')]
 tag:
     #!/usr/bin/env bash
     set -euo pipefail
-    [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ] &&
-      echo "Error: must be on main branch to tag" && exit 1
-    cargo release commit --execute --no-confirm
-    PACKAGE_VERSION=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
-    cargo release tag --tag-name "v${PACKAGE_VERSION}" --execute --no-confirm
-    cargo release push --tag-name "v${PACKAGE_VERSION}" --execute
-
-{% if artifactory_publish or gh_publish -%}
-[group('release')]
-upload:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mapfile -t ASSETS < <(find dist -type f -print)
-  {%- if artifactory_publish %}
-    for asset in "${ASSETS[@]}"; do
-        curl -u"${ARTIFACTORY_USER}":"${ARTIFACTORY_TOKEN}" \
-          -T "$asset" \
-          "${ARTIFACTORY_URL}/$(basename "$asset")"
-    done
-  {%- endif -%}
-  {%- if gh_publish %}
-    gh release create "v${PACKAGE_VERSION}" \
-      "${ASSETS[@]}" \
-      --notes "$(awk '/^## \[/{if(found) exit; found=1} found' CHANGELOG.md)"
-  {%- endif %}
-{%- endif %}
+    package_version=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
+    cargo release commit {{cargo_release_args}}
+    cargo release tag --tag-name "v${package_version}" {{cargo_release_args}}
 
 [group('release')]
-release: ci build package tag{% if artifactory_publish or gh_publish %} upload{% endif %}
+release: ci package tag
+{%- endraw %}

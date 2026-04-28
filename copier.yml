@@ -1,34 +1,15 @@
-project_title: ""
+project_title:
+  type: str
+  default: ""
 
-crate_name: "{{ project_title|lower|replace(' ', '-') }}"
+crate_name:
+  default: "{{ project_title|lower|replace(' ', '-') }}"
+  when: false
 
-crate_version: "0.0.1"
-
-rust_edition:
-  choices: [2015, 2018, 2021, 2024]
-  default: 2024
-
-crate_description: "{{crate_name}}"
-
-opensource: true
-
-remote_type:
-  choices: |
-    - "no remote"
-    {%- if opensource %}
-    - "github"
-    {%- else %}
-    - "gitlab (scania)"
-    {%- endif %}
-  default: "no remote"
+crate_description:
+  type: str
+  default: "{{ crate_name }}"
 
 repository:
-  when: "{{ remote_type != 'no remote' }}"
-
-gh_publish:
-  default: false
-  when: "{{ remote_type == 'github'}}"
-
-artifactory_publish:
-  default: false
-  when: "{{ remote_type == 'gitlab (scania)'}}"
+  type: str
+  default: ""

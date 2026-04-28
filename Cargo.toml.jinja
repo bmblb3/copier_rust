@@ -1,17 +1,13 @@
 [package]
 name = "{{crate_name}}"
-version = "{{crate_version}}"
-edition = "{{rust_edition}}"
+version = "0.0.1"
+edition = "2024"
 description = "{{crate_description}}"
-authors = ["Akshay Kumar"]
-{%- if remote_type != 'no remote' %}
+authors = ["Akshay Kumar (akshay.kumar@scania.com)"]
+{% if repository -%}
 repository = "{{repository}}"
-{%- endif -%}
-{%- if opensource %}
+{% endif -%}
 license = "MIT OR Apache-2.0"
-{%- else %}
-license-file = "COPYRIGHT"
-{%- endif %}
 
 [dependencies]
 
