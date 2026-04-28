@@ -16,7 +16,8 @@ Thank you for your interest in contributing!
     - *If you use Nix*: `nix develop`
     - *Otherwise*: refer to `buildInputs = [ .. ]` in `flake.nix` and install dependencies accordingly.
 - Write code.
-    - Format code: `just fmt`
-- Ensure all checks pass: `just ci`
+    - Format code with `just fmt`.
+    - Run focused checks with `just lint` or `just test`.
+- Ensure the full local check passes with `just ci`.
 - Open a pull request.
     - Add a short, clear list of your changes.
