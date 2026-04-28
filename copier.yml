@@ -1,14 +1,14 @@
+crate_name:
+  default: "{{ _copier_conf.dst_path.name }}"
+  when: false
+
 project_title:
   type: str
-  default: ""
-
-crate_name:
-  default: "{{ project_title|lower|replace(' ', '-') }}"
-  when: false
+  default: "{{ crate_name }}"
 
 crate_description:
   type: str
-  default: "{{ crate_name }}"
+  default: "{{ project_title }}"
 
 repository:
   type: str
