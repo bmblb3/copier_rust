@@ -1,3 +1,17 @@
 fn main() {
-    println!("Hello from {}!", env!("CARGO_PKG_NAME"));
+    println!("{}", greeting(env!("CARGO_PKG_NAME")));
+}
+
+fn greeting(crate_name: &str) -> String {
+    format!("Hello from {crate_name}!")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn greeting_includes_crate_name() {
+        assert_eq!(greeting("sample"), "Hello from sample!");
+    }
 }
