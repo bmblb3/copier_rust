@@ -21,5 +21,10 @@ RUN apt-get update \
 
 COPY --from=builder /usr/local/bin/{{ crate_name }} /usr/local/bin/{{ crate_name }}
 
+{% if project_kind == "webapp" -%}
+ENV {{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR=0.0.0.0:3000
+EXPOSE 3000
+
+{% endif -%}
 USER app:app
 ENTRYPOINT ["/usr/local/bin/{{ crate_name }}"]

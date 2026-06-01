@@ -1,3 +1,95 @@
+{% if project_kind == "webapp" -%}
+use std::env;
+
+use axum::Router;
+use axum::http::StatusCode;
+use axum::response::Html;
+use axum::response::IntoResponse;
+use axum::routing::get;
+
+const BIND_ADDR_ENV: &str = "{{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR";
+const DEFAULT_BIND_ADDR: &str = "127.0.0.1:3000";
+const PROJECT_TITLE: &str = {{ project_title | tojson }};
+const PROJECT_DESCRIPTION: &str = {{ crate_description | tojson }};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let bind_addr = env::var(BIND_ADDR_ENV).unwrap_or_else(|_| DEFAULT_BIND_ADDR.to_owned());
+    let listener = tokio::net::TcpListener::bind(&bind_addr).await?;
+    let local_addr = listener.local_addr()?;
+
+    eprintln!("listening on http://{local_addr}");
+    axum::serve(listener, app()).await?;
+
+    Ok(())
+}
+
+fn app() -> Router {
+    Router::new()
+        .route("/", get(home))
+        .route("/favicon.ico", get(favicon))
+}
+
+async fn home() -> impl IntoResponse {
+    Html(render_home_page())
+}
+
+async fn favicon() -> StatusCode {
+    StatusCode::NO_CONTENT
+}
+
+fn render_home_page() -> String {
+    let title = escape_html(PROJECT_TITLE);
+    let description = escape_html(PROJECT_DESCRIPTION);
+
+    format!(
+        r#"<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+</head>
+<body>
+  <main>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </main>
+</body>
+</html>"#
+    )
+}
+
+fn escape_html(input: &str) -> String {
+    input
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn home_page_includes_project_text() {
+        let html = render_home_page();
+
+        assert!(html.contains(&escape_html(PROJECT_TITLE)));
+        assert!(html.contains(&escape_html(PROJECT_DESCRIPTION)));
+    }
+
+    #[test]
+    fn html_escaping_handles_special_characters() {
+        assert_eq!(
+            escape_html(r#"<script alert="x">'&"#),
+            "&lt;script alert=&quot;x&quot;&gt;&#39;&amp;"
+        );
+    }
+}
+{% else -%}
 fn main() {
     println!("{}", greeting(env!("CARGO_PKG_NAME")));
 }
@@ -15,3 +107,4 @@ mod tests {
         assert_eq!(greeting("sample"), "Hello from sample!");
     }
 }
+{% endif -%}

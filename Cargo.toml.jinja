@@ -10,6 +10,10 @@ repository = "{{repository}}"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+{% if project_kind == "webapp" -%}
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"] }
+{% endif %}
 
 [dev-dependencies]
 

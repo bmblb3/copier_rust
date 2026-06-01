@@ -35,12 +35,16 @@
           mkShell {
             buildInputs = [
               cargo-nextest
+{% if project_kind == "webapp" %}              chromium
+{% endif -%}
 {% if release_mode == "binaries" %}              cargo-release
 {% endif %}              docker
 {% if release_mode == "binaries" %}              fzf
               git-cliff
               gnutar
               jq
+{% endif -%}
+{% if project_kind == "webapp" %}              nodejs_22
 {% endif %}              just
               lspmux
               pre-commit

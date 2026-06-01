@@ -14,7 +14,7 @@ fmt:
     cargo fmt --all
 
 [group('ci')]
-ci: lint test
+ci: lint test{% if project_kind == "webapp" %} test-ui{% endif %}
 
 [group('ci')]
 lint:
@@ -27,6 +27,24 @@ lint:
 test:
     cargo nextest run --all-features --all-targets --workspace
 
+{% if project_kind == "webapp" -%}
+[group('ci')]
+test-ui:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! -d node_modules ]; then
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts
+    fi
+    if [ -z "$(printenv {{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_PLAYWRIGHT_CHROMIUM || true)" ]; then
+        shopt -s nullglob
+        browsers=(/nix/store/*-chromium-*/bin/chromium "$HOME"/.cache/ms-playwright/chromium-*/chrome-linux*/chrome)
+        if [ -n "${browsers[0]:-}" ]; then
+            export {{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_PLAYWRIGHT_CHROMIUM="${browsers[0]}"
+        fi
+    fi
+    npm run test:ui
+
+{% endif -%}
 [group('ci')]
 build-debug:
     cargo build

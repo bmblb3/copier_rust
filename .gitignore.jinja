@@ -15,6 +15,12 @@
 # release assets
 dist/
 {% endif %}
+{% if project_kind == "webapp" -%}
+# Playwright and Node artifacts
+node_modules/
+playwright-report/
+test-results/
+{% endif %}
 
 # Created by https://www.toptal.com/developers/gitignore/api/rust
 # Edit at https://www.toptal.com/developers/gitignore?templates=rust

@@ -7,6 +7,13 @@ project_title:
 crate_description:
   default: "{{ project_title }}"
 
+project_kind:
+  type: str
+  default: "cli"
+  choices:
+    - "cli"
+    - "webapp"
+
 release_mode:
   type: str
   default: "binaries"

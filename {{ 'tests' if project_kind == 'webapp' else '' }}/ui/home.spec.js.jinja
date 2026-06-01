@@ -1,0 +1,119 @@
+import { spawn } from 'node:child_process';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import net from 'node:net';
+import { expect, test } from '@playwright/test';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const bindAddrEnv = '{{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR';
+
+let server;
+
+test.beforeAll(async () => {
+  server = await startServer();
+});
+
+test.afterAll(async () => {
+  await server?.stop();
+});
+
+test('renders the home page without browser errors', async ({ page }) => {
+  const errors = captureBrowserErrors(page);
+
+  await page.goto(server.baseUrl);
+  await expect(page.getByRole('heading', { name: {{ project_title | tojson }} })).toBeVisible();
+  await expect(page.locator('main p')).toHaveText({{ crate_description | tojson }});
+
+  expect(errors).toEqual([]);
+});
+
+function captureBrowserErrors(page) {
+  const errors = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      errors.push(message.text());
+    }
+  });
+  page.on('pageerror', (error) => {
+    errors.push(error.message);
+  });
+  return errors;
+}
+
+async function startServer() {
+  const dataDir = await mkdtemp(path.join(tmpdir(), '{{ crate_name }}-ui-'));
+  const port = await freePort();
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const child = spawn('cargo', ['run', '--quiet'], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      [bindAddrEnv]: `127.0.0.1:${port}`,
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let output = '';
+  child.stdout.on('data', (chunk) => {
+    output += chunk;
+  });
+  child.stderr.on('data', (chunk) => {
+    output += chunk;
+  });
+
+  await waitForServer(baseUrl, child, () => output);
+
+  return {
+    baseUrl,
+    async stop() {
+      child.kill('SIGTERM');
+      await Promise.race([onceExit(child), delay(2_000).then(() => child.kill('SIGKILL'))]);
+      await rm(dataDir, { recursive: true, force: true });
+    },
+  };
+}
+
+async function waitForServer(baseUrl, child, output) {
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) {
+      throw new Error(`Server exited before accepting requests:\n${output()}`);
+    }
+    try {
+      const response = await fetch(baseUrl);
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      await delay(200);
+    }
+  }
+  throw new Error(`Timed out waiting for server:\n${output()}`);
+}
+
+async function freePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      server.close(() => resolve(address.port));
+    });
+  });
+}
+
+async function onceExit(child) {
+  if (child.exitCode !== null) {
+    return;
+  }
+  await new Promise((resolve) => {
+    child.once('exit', resolve);
+  });
+}
+
+async function delay(ms) {
+  await new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}

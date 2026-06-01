@@ -4,8 +4,12 @@
 
 ## Development
 
-- `just ci` runs formatting, linting, and tests.
+- `just ci` runs formatting, linting, and tests{% if project_kind == "webapp" %}, including Playwright browser tests{% endif %}.
 - `just build-debug` builds the debug binary.
+{% if project_kind == "webapp" %}
+- `just test-ui` runs the Playwright browser tests.
+- `{{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR` controls the bind address. Local runs default to `127.0.0.1:3000`.
+{% endif %}
 
 {% if release_mode == "binaries" -%}
 ## Release
