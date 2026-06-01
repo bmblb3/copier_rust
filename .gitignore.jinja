@@ -1,23 +1,23 @@
-# [direnv]
+### direnv ###
 .direnv/
 .envrc
 
-# [scratch dir for experiments]
-.scratch/
-
-# [dotenv]
+### dotenv ###
 .env
 
-# [taskwarrior]
+### taskwarrior ###
 .taskrc
 
+### scratch dir for experiments ###
+.scratch/
+
 {% if release_mode == "binaries" -%}
-# release assets
+### release assets ###
 dist/
 
 {% endif -%}
 {% if project_kind == "webapp" -%}
-# Playwright and Node artifacts
+### Playwright and Node artifacts ###
 node_modules/
 playwright-report/
 test-results/
