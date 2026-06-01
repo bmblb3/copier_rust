@@ -4,7 +4,7 @@ musl_target := "x86_64-unknown-linux-musl"
 release_dir := "target/" + musl_target + "/release"
 cargo_release_args := "--allow-branch=main --execute --no-confirm"
 {% endraw %}
-{%- endif %}
+{% endif %}
 
 default:
     @just --list --unsorted
