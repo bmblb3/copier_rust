@@ -5,18 +5,18 @@ WORKDIR /app
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git/db \
-    --mount=type=cache,target=/app/target \
-    cargo build --release \
-    && cp "target/release/{{ crate_name }}" /usr/local/bin/{{ crate_name }}
+RUN --mount=type=cache,id={{ crate_name }}-cargo-registry,target=/usr/local/cargo/registry \
+    --mount=type=cache,id={{ crate_name }}-cargo-git,target=/usr/local/cargo/git/db \
+    --mount=type=cache,id={{ crate_name }}-target,target=/app/target \
+    cargo build --release --locked \
+    && cp /app/target/release/{{ crate_name }} /usr/local/bin/{{ crate_name }}
 
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
-    && groupadd --gid 10001 app \
-    && useradd --uid 10001 --gid app --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin app \
+    && groupadd --gid 100 app \
+    && useradd --uid 1000 --gid app --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin app \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/bin/{{ crate_name }} /usr/local/bin/{{ crate_name }}
