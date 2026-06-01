@@ -1,2 +1,22 @@
 # {{project_title}}
+
 {{crate_description}}
+
+## Development
+
+- `just ci` runs formatting, linting, and tests.
+- `just build-debug` builds the debug binary.
+
+{% if release_mode == "binaries" -%}
+## Release
+
+- `just bump` updates the crate version and changelog.
+- `just build-release` builds the musl release binary.
+- `just package` writes the release tarball and checksum to `dist/`.
+- `just release` runs CI, packages the binary, and creates the git release tag.
+{% elif release_mode == "dockerized" -%}
+## Release
+
+- `just build-release` builds `docker.io/bmblb3/{{ crate_name }}:<git-sha>` and `docker.io/bmblb3/{{ crate_name }}:latest`.
+- `just release` runs CI, builds the image, and pushes both tags.
+{% endif -%}

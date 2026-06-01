@@ -7,5 +7,12 @@ project_title:
 crate_description:
   default: "{{ project_title }}"
 
+release_mode:
+  type: str
+  default: "binaries"
+  choices:
+    - "binaries"
+    - "dockerized"
+
 repository:
   default: ""

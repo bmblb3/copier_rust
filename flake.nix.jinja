@@ -35,13 +35,13 @@
           mkShell {
             buildInputs = [
               cargo-nextest
-              cargo-release
-              docker
-              fzf
+{% if release_mode == "binaries" %}              cargo-release
+{% endif %}              docker
+{% if release_mode == "binaries" %}              fzf
               git-cliff
               gnutar
               jq
-              just
+{% endif %}              just
               lspmux
               pre-commit
               rustToolchain

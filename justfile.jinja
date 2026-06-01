@@ -1,7 +1,10 @@
+{% if release_mode == "binaries" -%}
 {% raw -%}
 musl_target := "x86_64-unknown-linux-musl"
 release_dir := "target/" + musl_target + "/release"
 cargo_release_args := "--allow-branch=main --execute --no-confirm"
+{% endraw %}
+{% endif %}
 
 default:
     @just --list --unsorted
@@ -28,6 +31,8 @@ test:
 build-debug:
     cargo build
 
+{% if release_mode == "binaries" -%}
+{% raw -%}
 [group('pre-release')]
 bump: ci
     #!/usr/bin/env bash
@@ -76,3 +81,24 @@ tag:
 [group('release')]
 release: ci package tag
 {%- endraw %}
+{% elif release_mode == "dockerized" -%}
+[group('release')]
+build-release:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    git_sha=$(git rev-parse --short=12 HEAD)
+    image="docker.io/bmblb3/{{ crate_name }}"
+    DOCKER_BUILDKIT=1 docker build \
+      --tag "${image}:${git_sha}" \
+      --tag "${image}:latest" \
+      .
+
+[group('release')]
+release: ci build-release
+    #!/usr/bin/env bash
+    set -euo pipefail
+    git_sha=$(git rev-parse --short=12 HEAD)
+    image="docker.io/bmblb3/{{ crate_name }}"
+    docker push "${image}:${git_sha}"
+    docker push "${image}:latest"
+{% endif -%}
