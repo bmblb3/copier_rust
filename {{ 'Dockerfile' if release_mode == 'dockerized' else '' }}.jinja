@@ -15,8 +15,7 @@ FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
-    && groupadd --gid 100 app \
-    && useradd --uid 1000 --gid app --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin app \
+    && install -d --owner=1000 --group=100 --mode=0755 /data \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/bin/{{ crate_name }} /usr/local/bin/{{ crate_name }}
@@ -26,5 +25,5 @@ ENV {{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR=0
 EXPOSE 3000
 
 {% endif -%}
-USER app:app
+USER 1000:100
 ENTRYPOINT ["/usr/local/bin/{{ crate_name }}"]
