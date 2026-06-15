@@ -11,6 +11,22 @@
 - `{{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR` controls the bind address. Local runs default to `127.0.0.1:3000`.
 {% endif %}
 
+## Runtime defaults
+
+Keep defaults close to the layer that owns them. The Rust app should own local runtime defaults and validation. The Docker image should own container-only defaults. Compose or another deployment layer should only set deployment-specific values such as URLs, host paths, networks, and secrets.
+{% if release_mode == "dockerized" %}
+
+Docker image defaults:
+
+- The runtime image runs as UID `1000`, GID `100`.
+- `/data` exists and is writable by the runtime user.
+{% if project_kind == "webapp" -%}
+- `{{ crate_name | replace('-', '_') | replace('.', '_') | upper }}_BIND_ADDR=0.0.0.0:3000` and `EXPOSE 3000` are set for container runs.
+{% endif %}
+
+Compose should stay terse: set image/build, restart policy, required volumes, URLs, and secrets as files. Do not repeat defaults already provided by the Rust app or Dockerfile unless the deployment intentionally overrides them.
+{% endif %}
+
 {% if release_mode == "binaries" -%}
 ## Release
 
